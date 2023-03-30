@@ -6,6 +6,9 @@ const userModel = include('models/web_user');
 const crypto = require('crypto');
 const {v4: uuid} = require('uuid'); 
 const passwordPepper = "SeCretPeppa4MySal+"; 
+const petModel = include('models/pet')
+const petTypeModel = include('models/pet_type')
+
 
 // router.get('/', async (req, res) => {
 // 	console.log("page hit");
@@ -43,6 +46,27 @@ router.get('/', async (req, res) => {
 			console.log(ex);
 		}
 	});
+
+	router.get('/allpets', async (req, res) => { 
+		console.log("page hit"); 
+		try {
+			const pets = await petModel.findAll({attributes: 
+				['name']}); //{where: {web_user_id: 1}}
+				if (pets === null) {
+					res.render('error', {message: 'Error connecting to MySQL'});
+					console.log("Error connecting to userModel"); 
+				}
+				else {
+					console.log(pets);    
+					res.render('pets', {allPets: pets});
+				}
+			}
+			catch(ex) { 
+				res.render('error', {message: 'Error connecting to MySQL'}); 
+				console.log("Error connecting to MySQL"); 
+				console.log(ex);
+			}
+		});
 
 	router.get('/deleteUser', async (req, res) => {
 		try {
@@ -97,6 +121,34 @@ router.get('/', async (req, res) => {
 		console.log(ex);
 	}
 });
+
+
+router.get('/showPets', async (req, res) => {
+	console.log("page hit");
+	try {
+		let userId = req.query.id;
+		const user = await userModel.findByPk(userId);
+		if (user === null) {
+			res.render('error', {message: 'Error connecting to MySQL'});
+			console.log("Error connecting to userModel");
+		}
+		else {
+			let pets = await user.getPets();
+			console.log(pets);
+			let owner = await pets[0].getOwner();
+			console.log(owner);
+
+			res.render('pets', {allPets: pets});
+		}
+	}
+	catch(ex) {
+		res.render('error', {message: 'Error connecting to MySQL'});
+		console.log("Error connecting to MySQL");
+		console.log(ex);
+	}
+});
+		
+	
 
 
 module.exports = router;
